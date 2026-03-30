@@ -21,7 +21,9 @@ jobs:
           is-asset-build: true
 
       - name: Replace package name in stub build file
-        run: sed -i '' 's/com\.topjohnwu\.magisk/you.know.what.iam.saying/g' app/stub/build.gradle.kts
+        run: 
+          sed -i '' 's/com\.topjohnwu\.magisk/you.know.what.iam.saying/g' app/stub/build.gradle.kts
+          sed -i '' 's/com\.topjohnwu\.magisk\.R\./you.know.what.iam.saying.R./g' app/stub/src/main/java/com/topjohnwu/magisk/DownloadActivity.java
 
       - name: Build release
         run: ./build.py -vr all
