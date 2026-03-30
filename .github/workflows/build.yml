@@ -22,8 +22,8 @@ jobs:
 
       - name: Replace package name in stub build file
         run: |
-          sed -i '' 's/com\.topjohnwu\.magisk/you.know.what.iam.saying/g' app/stub/build.gradle.kts
-          find app/stub/src/main/java/ -name "*.java" -exec sed -i '' 's/import static com\.topjohnwu\.magisk\./import static you.know.what.iam.saying./g' {} \;
+          #sed -i '' 's/com\.topjohnwu\.magisk/you.know.what.iam.saying/g' app/stub/build.gradle.kts
+          #find app/stub/src/main/java/ -name "*.java" -exec sed -i '' 's/import static com\.topjohnwu\.magisk\./import static you.know.what.iam.saying./g' {} \;
 
       - name: Build release
         run: ./build.py -vr all
