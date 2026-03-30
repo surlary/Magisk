@@ -23,6 +23,7 @@ jobs:
       - name: Replace package name in stub build file
         run: |
           sed -i '' 's/applicationId = "com\.topjohnwu\.magisk/applicationId = "you.know.what.iam.saying/g' app/stub/build.gradle.kts
+          cat app/stub/build.gradle.kts
           #find app/stub/src/main/java/ -name "*.java" -exec sed -i '' 's/import static com\.topjohnwu\.magisk\./import static you.know.what.iam.saying./g' {} \;
 
       - name: Build release
