@@ -43,12 +43,14 @@ jobs:
           find app/build-logic/ -type f -name '*.kt*' -exec sed -i '' 's/com\.topjohnwu\.magisk/com.you.know/g' {} \;
 
           find app/apk-ng/ -type f -name '*.kt*' -exec sed -i '' 's/com\.topjohnwu\.magisk/com.you.know/g' {} \;
+          find app/apk-ng/src/main/res/layout -type f -name '*.xml' -exec sed -i '' 's/com\.topjohnwu\.magisk/com.you.know/g' {} \;
           mv app/apk-ng/src/main/java/com/topjohnwu/magisk app/apk-ng/src/main/java/com/topjohnwu/know
           mv app/apk-ng/src/main/java/com/topjohnwu app/apk-ng/src/main/java/com/know
           
           
           
           find app/apk/ -type f -name '*.kt*' -exec sed -i '' 's/com\.topjohnwu\.magisk/com.you.know/g' {} \;
+          find app/apk/src/main/res/layout -type f -name '*.xml' -exec sed -i '' 's/com\.topjohnwu\.magisk/com.you.know/g' {} \;
           mv app/apk/src/main/java/com/topjohnwu/magisk app/apk/src/main/java/com/topjohnwu/know
           mv app/apk/src/main/java/com/topjohnwu app/apk/src/main/java/com/know
 
