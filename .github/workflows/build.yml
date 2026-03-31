@@ -55,11 +55,11 @@ jobs:
           mv app/apk/src/main/java/com/topjohnwu/magisk app/apk/src/main/java/com/topjohnwu/know
           mv app/apk/src/main/java/com/topjohnwu app/apk/src/main/java/com/you
 
-          sed -i '' 's/com\/topjohnwu\/magisk/com\/you\/know/g' app/build-logic/src/main/java/Stub.kt
-          sed -i '' 's/com\/topjohnwu\/magisk/com\/you\/know/g' app/test/src/main/AndroidManifest.xml
-          sed -i '' 's/com\/topjohnwu\/magisk/com\/you\/know/g' app/apk/src/main/res/navigation/main.xml
-          sed -i '' 's/com\/topjohnwu\/magisk/com\/you\/know/g' app/stub/proguard-rules.pro
-          sed -i '' 's/com\/topjohnwu\/magisk/com\/you\/know/g' app/test/proguard-rules.pro
+          #sed -i '' 's/com\/topjohnwu\/magisk/com\/you\/know/g' app/build-logic/src/main/java/Stub.kt
+          #sed -i '' 's/com\/topjohnwu\/magisk/com\/you\/know/g' app/test/src/main/AndroidManifest.xml
+          #sed -i '' 's/com\/topjohnwu\/magisk/com\/you\/know/g' app/apk/src/main/res/navigation/main.xml
+          #sed -i '' 's/com\/topjohnwu\/magisk/com\/you\/know/g' app/stub/proguard-rules.pro
+          #sed -i '' 's/com\/topjohnwu\/magisk/com\/you\/know/g' app/test/proguard-rules.pro
 
           sed -i '' 's/com\.topjohnwu\.magisk/com.you.know/g' app/build-logic/src/main/java/Stub.kt
           sed -i '' 's/com\.topjohnwu\.magisk/com.you.know/g' app/test/src/main/AndroidManifest.xml
