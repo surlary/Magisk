@@ -55,6 +55,10 @@ jobs:
           mv app/apk/src/main/java/com/topjohnwu app/apk/src/main/java/com/you
 
           sed -i '' 's/com\/topjohnwu\/magisk/com\/you\/know/g' app/build-logic/src/main/java/Stub.kt
+          sed -i '' 's/com\/topjohnwu\/magisk/com\/you\/know/g' test/src/main/AndroidManifest.xml
+          sed -i '' 's/com\/topjohnwu\/magisk/com\/you\/know/g' apk/src/main/res/navigation/main.xml
+          sed -i '' 's/com\/topjohnwu\/magisk/com\/you\/know/g' stub/proguard-rules.pro
+          sed -i '' 's/com\/topjohnwu\/magisk/com\/you\/know/g' test/proguard-rules.pro
 
           #sed -i '' 's/applicationId = "com\.topjohnwu\.magisk/applicationId = "you.know.what.iam.saying/g' app/stub/build.gradle.kts
           #cat app/stub/build.gradle.kts
