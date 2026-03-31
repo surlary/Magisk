@@ -22,12 +22,16 @@ jobs:
 
       - name: Replace package name in stub build file
         run: |
-          sed -i '' 's/applicationId = "com\.topjohnwu\.magisk/applicationId = "you.know.what.iam.saying/g' app/stub/build.gradle.kts
-          cat app/stub/build.gradle.kts
+          sed -i '' 's/com\.topjohnwu\.magisk/com.you.know/g' app/stub/build.gradle.kts
+          find app/stub/src/main/java/ -name "*.java" -exec sed -i '' 's/com\.topjohnwu\.magisk/com.you.know/g' {} \;
+          mv app/stub/src/main/java/com/topjohnwu/magisk app/stub/src/main/java/com/topjohnwu/know
+          mv app/stub/src/main/java/com/topjohnwu app/stub/src/main/java/com/you
+          #sed -i '' 's/applicationId = "com\.topjohnwu\.magisk/applicationId = "you.know.what.iam.saying/g' app/stub/build.gradle.kts
+          #cat app/stub/build.gradle.kts
           #find app/stub/src/main/java/ -name "*.java" -exec sed -i '' 's/import static com\.topjohnwu\.magisk\./import static you.know.what.iam.saying./g' {} \;
 
       - name: Build release
-        run: ./build.py -vr all
+        run: ./build.py -vr stub
 
       # - name: Build debug
       #   run: ./build.py -v all
