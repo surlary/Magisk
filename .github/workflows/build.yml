@@ -34,7 +34,7 @@ jobs:
           mv app/core/src/main/java/com/topjohnwu app/core/src/main/java/com/you
           mv app/core/src/main/aidl/com/topjohnwu app/core/src/main/aidl/com/you
 
-          find app/stub/src/main/java/ -type f -exec sed -i '' 's/com\.topjohnwu\.magisk/com.you.know/g' {} \;
+          find app/shared/src/main/java/ -type f -exec sed -i '' 's/com\.topjohnwu\.magisk/com.you.know/g' {} \;
           mv app/shared/src/main/java/com/topjohnwu/magisk app/shared/src/main/java/com/topjohnwu/know
           mv app/shared/src/main/java/com/topjohnwu app/shared/src/main/java/com/you
           
