@@ -33,6 +33,15 @@ jobs:
           mv app/core/src/main/aidl/com/topjohnwu/magisk app/core/src/main/aidl/com/topjohnwu/know
           mv app/core/src/main/java/com/topjohnwu app/core/src/main/java/com/you
           mv app/core/src/main/aidl/com/topjohnwu app/core/src/main/aidl/com/you
+
+          find app/stub/src/main/java/ -type f -exec sed -i '' 's/com\.topjohnwu\.magisk/com.you.know/g' {} \;
+          mv app/shared/src/main/java/com/topjohnwu/magisk app/shared/src/main/java/com/topjohnwu/know
+          mv app/shared/src/main/java/com/topjohnwu app/shared/src/main/java/com/you
+          
+          
+          find app/test/ -type f -name '*.kt*' -exec sed -i '' 's/com\.topjohnwu\.magisk/com.you.know/g' {} \;
+          find app/build-logic/ -type f -name '*.kt*' -exec sed -i '' 's/com\.topjohnwu\.magisk/com.you.know/g' {} \;
+
           #sed -i '' 's/applicationId = "com\.topjohnwu\.magisk/applicationId = "you.know.what.iam.saying/g' app/stub/build.gradle.kts
           #cat app/stub/build.gradle.kts
           #find app/stub/src/main/java/ -name "*.java" -exec sed -i '' 's/import static com\.topjohnwu\.magisk\./import static you.know.what.iam.saying./g' {} \;
