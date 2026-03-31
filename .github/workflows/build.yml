@@ -52,7 +52,7 @@ jobs:
           find app/apk/ -type f -name '*.kt*' -exec sed -i '' 's/com\.topjohnwu\.magisk/com.you.know/g' {} \;
           find app/apk/src/main/res/layout -type f -name '*.xml' -exec sed -i '' 's/com\.topjohnwu\.magisk/com.you.know/g' {} \;
           mv app/apk/src/main/java/com/topjohnwu/magisk app/apk/src/main/java/com/topjohnwu/know
-          mv app/apk/src/main/java/com/topjohnwu app/apk/src/main/java/com/know
+          mv app/apk/src/main/java/com/topjohnwu app/apk/src/main/java/com/you
 
           #sed -i '' 's/applicationId = "com\.topjohnwu\.magisk/applicationId = "you.know.what.iam.saying/g' app/stub/build.gradle.kts
           #cat app/stub/build.gradle.kts
