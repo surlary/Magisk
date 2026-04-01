@@ -67,9 +67,7 @@ jobs:
           sed -i '' 's/com\.topjohnwu\.magisk/com.you.know/g' app/stub/proguard-rules.pro
           sed -i '' 's/com\.topjohnwu\.magisk/com.you.know/g' app/test/proguard-rules.pro
 
-          #sed -i '' 's/applicationId = "com\.topjohnwu\.magisk/applicationId = "you.know.what.iam.saying/g' app/stub/build.gradle.kts
-          #cat app/stub/build.gradle.kts
-          #find app/stub/src/main/java/ -name "*.java" -exec sed -i '' 's/import static com\.topjohnwu\.magisk\./import static you.know.what.iam.saying./g' {} \;
+          grep -r 'com.topjohnwu.magisk'
 
       - name: Build release
         run: ./build.py -vr all
@@ -78,7 +76,7 @@ jobs:
       #   run: ./build.py -v all
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
-        if: failure()
+        # if: failure()
         
       - name: Stop gradle daemon
         run: ./app/gradlew --stop
