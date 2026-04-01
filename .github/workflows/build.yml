@@ -41,6 +41,7 @@ jobs:
           
           find app/test/ -type f -name '*.kt*' -exec sed -i '' 's/com\.topjohnwu\.magisk/com.you.know/g' {} \;
           find app/build-logic/ -type f -name '*.kt*' -exec sed -i '' 's/com\.topjohnwu\.magisk/com.you.know/g' {} \;
+          sed -i '' 's/com\/topjohnwu\/magisk/com\/you\/know/g' app/build-logic/src/main/java/Stub.kt
 
           find app/apk-ng/ -type f -name '*.kt*' -exec sed -i '' 's/com\.topjohnwu\.magisk/com.you.know/g' {} \;
           #find app/apk-ng/src/main/res/layout -type f -name '*.xml' -exec sed -i '' 's/com\.topjohnwu\.magisk/com.you.know/g' {} \;
@@ -67,6 +68,8 @@ jobs:
           sed -i '' 's/com\.topjohnwu\.magisk/com.you.know/g' app/stub/proguard-rules.pro
           sed -i '' 's/com\.topjohnwu\.magisk/com.you.know/g' app/test/proguard-rules.pro
 
+          find native/src/ -type f -exec sed -i '' 's/com\.topjohnwu\.magisk/com.you.know/g' {} \;
+
           grep -r 'com.topjohnwu.magisk'
 
       - name: Build release
@@ -76,7 +79,7 @@ jobs:
       #   run: ./build.py -v all
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
-        # if: failure()
+        if: failure()
         
       - name: Stop gradle daemon
         run: ./app/gradlew --stop
