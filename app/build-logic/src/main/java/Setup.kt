@@ -14,7 +14,6 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.StopExecutionException
 import org.gradle.api.tasks.Sync
 import org.gradle.kotlin.dsl.assign
-import org.gradle.kotlin.dsl.exclude
 import org.gradle.kotlin.dsl.filter
 import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.register
@@ -44,16 +43,16 @@ internal fun Project.androidAppComponents(configure: Action<ApplicationAndroidCo
 fun Project.setupCommon() {
     android {
         compileSdk {
-            version = release(36) {
+            version = release(37) {
                 minorApiLevel = 1
             }
         }
-        buildToolsVersion = "36.1.0"
+        buildToolsVersion = "37.0.0"
         ndkPath = "${androidComponents.sdkComponents.sdkDirectory.get().asFile}/ndk/magisk"
-        ndkVersion = "29.0.14206865"
+        ndkVersion = "30.0.15729638"
 
         defaultConfig.apply {
-            minSdk = 23
+            minSdk = 24
         }
 
         compileOptions.apply {
@@ -67,22 +66,16 @@ fun Project.setupCommon() {
                     "/META-INF/*",
                     "/META-INF/androidx/**",
                     "/META-INF/versions/**",
-                    "/org/bouncycastle/**",
+                    "/META-INF/native-image/**",
                     "/org/apache/commons/**",
                     "/kotlin/**",
-                    "/kotlinx/**",
-                    "/okhttp3/**",
                     "/*.txt",
-                    "/*.bin",
                     "/*.json",
+                    "**/*.bin",
+                    "**/*.proto",
                 )
             }
         }
-    }
-
-    configurations.all {
-        exclude("org.jetbrains.kotlin", "kotlin-stdlib-jdk7")
-        exclude("org.jetbrains.kotlin", "kotlin-stdlib-jdk8")
     }
 }
 
@@ -111,6 +104,11 @@ const val BUSYBOX_DOWNLOAD_URL =
     "https://github.com/topjohnwu/magisk-files/releases/download/files/busybox-1.36.1.1.zip"
 const val BUSYBOX_ZIP_CHECKSUM =
     "b4d0551feabaf314e53c79316c980e8f66432e9fb91a69dbbf10a93564b40951"
+
+const val BOOTCTL_DOWNLOAD_URL =
+    "https://github.com/topjohnwu/magisk-files/releases/download/files/bootctl-android-14.0.0_r1.zip"
+const val BOOTCTL_ZIP_CHECKSUM =
+    "2cf515aeb17259e88393a1322671ebab1968925864bc04ae57dad54e53ccf15b"
 
 private abstract class SyncWithDir : Sync() {
     @get:OutputDirectory
@@ -141,16 +139,16 @@ fun Project.setupCoreLib() {
                 }
                 from(zipTree(downloadFile(BUSYBOX_DOWNLOAD_URL, BUSYBOX_ZIP_CHECKSUM)))
                 include(abiList.map { "$it/libbusybox.so" })
+                from(zipTree(downloadFile(BOOTCTL_DOWNLOAD_URL, BOOTCTL_ZIP_CHECKSUM)))
+                include(abiList.map { "$it/libbootctl.so" })
                 onlyIf {
-                    if (inputs.sourceFiles.files.size != abiList.size * 6)
+                    if (inputs.sourceFiles.files.size != abiList.size * 7)
                         throw StopExecutionException("Please build binaries first! (./build.py binary)")
                     true
                 }
             }
-
-            variant.sources.jniLibs?.let {
-                it.addGeneratedSourceDirectory(syncLibs, SyncWithDir::outputFolder)
-            }
+            variant.sources.jniLibs
+                ?.addGeneratedSourceDirectory(syncLibs, SyncWithDir::outputFolder)
 
             val syncResources = tasks.register("sync${variantCapped}Resources", SyncWithDir::class) {
                 outputFolder.set(layout.buildDirectory.dir("$variantName/resources"))
@@ -165,12 +163,9 @@ fun Project.setupCoreLib() {
                     }
                 }
             }
+            variant.sources.resources
+                ?.addGeneratedSourceDirectory(syncResources, SyncWithDir::outputFolder)
 
-            variant.sources.resources?.let {
-                it.addGeneratedSourceDirectory(syncResources, SyncWithDir::outputFolder)
-            }
-
-            val stubTask = tasks.getByPath(":stub:comment$variantCapped")
             val syncAssets = tasks.register("sync${variantCapped}Assets", SyncWithDir::class) {
                 outputFolder.set(layout.buildDirectory.dir("$variantName/assets"))
                 into(outputFolder)
@@ -180,17 +175,6 @@ fun Project.setupCoreLib() {
                 from(rootFile("scripts")) {
                     include("util_functions.sh", "boot_patch.sh", "addon.d.sh",
                         "app_functions.sh", "uninstaller.sh", "module_installer.sh")
-                }
-                from(rootFile("tools/bootctl"))
-                into("chromeos") {
-                    from(rootFile("tools/futility"))
-                    from(rootFile("tools/keys")) {
-                        include("kernel_data_key.vbprivk", "kernel.keyblock")
-                    }
-                }
-                from(stubTask) {
-                    include { it.name.endsWith(".apk") }
-                    rename { "stub.apk" }
                 }
                 filesMatching("**/util_functions.sh") {
                     filter {
@@ -202,10 +186,8 @@ fun Project.setupCoreLib() {
                     filter<FixCrLfFilter>("eol" to FixCrLfFilter.CrLf.newInstance("lf"))
                 }
             }
-
-            variant.sources.assets?.let {
-                it.addGeneratedSourceDirectory(syncAssets, SyncWithDir::outputFolder)
-            }
+            variant.sources.assets
+                ?.addGeneratedSourceDirectory(syncAssets, SyncWithDir::outputFolder)
         }
     }
 }
@@ -226,7 +208,7 @@ fun Project.setupAppCommon() {
         }
 
         defaultConfig {
-            targetSdk = 36
+            targetSdk = 37
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt")
             )
@@ -261,20 +243,22 @@ fun Project.setupAppCommon() {
     androidAppComponents {
         onVariants { variant ->
             val commentTask = tasks.register(
-                "comment${variant.name.replaceFirstChar { it.uppercase() }}",
-                AddCommentTask::class.java
+                "transform${variant.name.replaceFirstChar { it.uppercase() }}Apk",
+                TransformApkTask::class.java
             )
             val transformationRequest = variant.artifacts.use(commentTask)
-                .wiredWithDirectories(AddCommentTask::apkFolder, AddCommentTask::outFolder)
+                .wiredWithDirectories(TransformApkTask::apkFolder, TransformApkTask::outFolder)
                 .toTransformMany(SingleArtifact.APK)
             val signingConfig = androidApp.buildTypes.getByName(variant.buildType!!).signingConfig
             commentTask.configure {
                 this.transformationRequest = transformationRequest
                 this.signingConfig = signingConfig
-                this.comment = "version=${Config.version}\n" +
-                        "versionCode=${Config.versionCode}\n" +
-                        "stubVersion=${Config.stubVersion}\n"
                 this.outFolder.set(layout.buildDirectory.dir("outputs/apk/${variant.name}"))
+                // Always add a transformation to set comments on the APK
+                this.transformations.add {
+                    it.eocdComment = ("version=${Config.version}\n" +
+                            "versionCode=${Config.versionCode}\n").toByteArray()
+                }
             }
 
         }
@@ -289,11 +273,10 @@ fun Project.setupMainApk() {
 
         defaultConfig {
             applicationId = "com.topjohnwu.magisk"
-            vectorDrawables.useSupportLibrary = true
             versionName = Config.version
             versionCode = Config.versionCode
             ndk {
-                abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64", "riscv64")
+                abiFilters += ABI_SUPPORT_LIST
                 debugSymbolLevel = "FULL"
             }
         }
@@ -311,9 +294,9 @@ fun Project.setupMainApk() {
 }
 
 const val LSPOSED_DOWNLOAD_URL =
-    "https://github.com/LSPosed/LSPosed/releases/download/v1.9.2/LSPosed-v1.9.2-7024-zygisk-release.zip"
+    "https://github.com/topjohnwu/magisk-files/releases/download/files/LSPosed-v2.1.1-7790-release.zip"
 const val LSPOSED_CHECKSUM =
-    "0ebc6bcb465d1c4b44b7220ab5f0252e6b4eb7fe43da74650476d2798bb29622"
+    "f58eb92678e9d8b982de4987b249bfa8593f7c1524aff3be9976a5cb478d3263"
 
 const val SHAMIKO_DOWNLOAD_URL =
     "https://github.com/LSPosed/LSPosed.github.io/releases/download/shamiko-383/Shamiko-v1.2.1-383-release.zip"
@@ -339,10 +322,7 @@ fun Project.setupTestApk() {
                     rename { "shamiko.zip" }
                 }
             }
-
-            variant.sources.assets?.let {
-                it.addGeneratedSourceDirectory(dlTask, SyncWithDir::outputFolder)
-            }
+            variant.sources.assets?.addGeneratedSourceDirectory(dlTask, SyncWithDir::outputFolder)
         }
     }
 }
