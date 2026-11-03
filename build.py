@@ -438,7 +438,8 @@ def cleanup():
 def build_all():
     build_native()
     build_app()
-    build_test()
+    # build_app_ng()
+    # build_test()
 
 
 ############
