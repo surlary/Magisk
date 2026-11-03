@@ -22,8 +22,9 @@ jobs:
 
       - name: Replace package name in stub build file
         run: |
-          sed -i '' 's/com\.topjohnwu\.magisk/com.you.know/g' app/core/build.gradle.kts
-          sed -i '' 's/com\.topjohnwu\.magisk/com.you.know/g' app/stub/build.gradle.kts
+          #sed -i '' 's/com\.topjohnwu\.magisk/com.you.know/g' app/core/build.gradle.kts
+          #sed -i '' 's/com\.topjohnwu\.magisk/com.you.know/g' app/stub/build.gradle.kts
+          find app -type f -name 'build.gradle.kts' -exec sed -i '' 's/com\.topjohnwu\.magisk/com.you.know/g' {} \;
           find app/stub/src/main/java/ -type f -name "*.java" -exec sed -i '' 's/com\.topjohnwu\.magisk/com.you.know/g' {} \;
           mv app/stub/src/main/java/com/topjohnwu/magisk app/stub/src/main/java/com/topjohnwu/know
           mv app/stub/src/main/java/com/topjohnwu app/stub/src/main/java/com/you
