@@ -10,10 +10,13 @@ jobs:
     strategy:
       fail-fast: false
     steps:
-      - name: Check out
+      - name: Check out Magisk v30.7
         uses: actions/checkout@v6
         with:
+          repository: topjohnwu/Magisk   # 注意只写 owner/repo，不要写完整 URL
+          ref: v30.7                     # tag 名，也可以换成分支名或 commit SHA
           submodules: "recursive"
+          path: Magisk
 
       - name: Setup environment
         uses: ./.github/actions/setup
