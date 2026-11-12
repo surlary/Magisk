@@ -13,8 +13,7 @@ jobs:
       - name: Check out Magisk v30.7
         uses: actions/checkout@v6
         with:
-          repository: topjohnwu/Magisk   # 注意只写 owner/repo，不要写完整 URL
-          ref: v30.7                     # tag 名，也可以换成分支名或 commit SHA
+          ref: 7c40f0436e721d35e42d4ae0bfed0e16bce321b1
           submodules: "recursive"
 
       - name: Setup environment
