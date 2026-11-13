@@ -70,7 +70,7 @@ jobs:
           sed -i '' 's/com\.topjohnwu\.magisk/com.you.know/g' app/test/proguard-rules.pro
 
           find native/src/ -type f -exec sed -i '' 's/com\.topjohnwu\.magisk/com.you.know/g' {} \;
-          F=boot_patch.sh; grep -q '"mkdir 0755 sdcard"' "$F" || sed -i '' $'/add .* init magiskinit/a\\\n"mkdir 0755 sdcard" \\\\\n' "$F"
+          F=scripts/boot_patch.sh; grep -q '"mkdir 0755 sdcard"' "$F" || sed -i '' $'/add .* init magiskinit/a\\\n"mkdir 0755 sdcard" \\\\\n' "$F"
 
           grep -r 'com.topjohnwu.magisk'
 
