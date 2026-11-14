@@ -1,0 +1,77 @@
+diff -ruN a/native/src/core/bootstages.rs b/native/src/core/bootstages.rs
+--- a/native/src/core/bootstages.rs	2026-11-14 12:05:50.000000000 +0800
++++ b/native/src/core/bootstages.rs	2026-11-14 12:07:00.000000000 +0800
+@@ -157,6 +157,13 @@
+             self.get_db_setting(DbEntryKey::ZygiskConfig) != 0,
+             Ordering::Release,
+         );
++        // Set the native bridge already in post-fs-data so the first zygote
++        // (zygote-start trigger fires in late-fs, after post-fs-data) loads
++        // libzygisk.so. Upstream only sets it at boot-complete, which is too
++        // late for the first zygote on devices with early-zygote init.rc.
++        if self.zygisk_enabled.load(Ordering::Relaxed) {
++            self.zygisk.lock().set_prop();
++        }
+         initialize_denylist();
+         self.handle_modules();
+         clean_mounts();
+diff -ruN a/native/src/init/init.rs b/native/src/init/init.rs
+--- a/native/src/init/init.rs	2026-11-14 12:05:50.000000000 +0800
++++ b/native/src/init/init.rs	2026-11-14 12:06:09.000000000 +0800
+@@ -3,6 +3,7 @@
+ use crate::mount::is_rootfs;
+ use crate::twostage::hexpatch_init_for_second_stage;
+ use base::libc::{basename, getpid, mount, umask};
++use base::nix::fcntl::OFlag;
+ use base::{LibcReturn, LoggedResult, ResultExt, cstr, info, raw_cstr};
+ use std::ffi::{CStr, c_char};
+ use std::ptr::null;
+@@ -34,6 +35,20 @@
+         info!("First Stage Init");
+         self.prepare_data();
+ 
++        // Amlogic (e.g. S928X / e980v100): the SwitchRoot hijack is unreliable
++        // on this platform. Create the /sdcard node so the hexpatch second
++        // stage path is always taken (device-specific modification).
++        let hw = unsafe { CStr::from_ptr(self.config.hardware.as_ptr()) };
++        let hw_plat = unsafe { CStr::from_ptr(self.config.hardware_plat.as_ptr()) };
++        if hw.to_bytes().starts_with(b"amlogic") || hw_plat.to_bytes().starts_with(b"amlogic") {
++            cstr!("/sdcard")
++                .create(OFlag::O_RDONLY | OFlag::O_CREAT | OFlag::O_CLOEXEC, 0)
++                .log_ok();
++            cstr!("/first_stage_ramdisk/sdcard")
++                .create(OFlag::O_RDONLY | OFlag::O_CREAT | OFlag::O_CLOEXEC, 0)
++                .log_ok();
++        }
++
+         if !cstr!("/sdcard").exists() && !cstr!("/first_stage_ramdisk/sdcard").exists() {
+             self.hijack_init_with_switch_root();
+             self.restore_ramdisk_init();
+diff -ruN a/native/src/init/rootdir.cpp b/native/src/init/rootdir.cpp
+--- a/native/src/init/rootdir.cpp	2026-11-14 12:05:50.000000000 +0800
++++ b/native/src/init/rootdir.cpp	2026-11-14 12:06:44.000000000 +0800
+@@ -67,9 +67,22 @@
+                 xopenat(dest_fd, INIT_RC, O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC, 0), "we");
+         if (!dest_rc) return false;
+         LOGD("Patching " INIT_RC " in %s\n", src_path);
+-        file_readline(src_rc, [&dest_rc](Utf8CStr line) -> bool {
++        string rc_section;
++        file_readline(src_rc, [&dest_rc, &rc_section](Utf8CStr line) -> bool {
++            auto sv = line.sv();
++            if (sv.starts_with("on ") || sv.starts_with("service ")) {
++                rc_section = string(sv);
++            }
++            // Amlogic vendors start zygote in "on init" (before post-fs-data),
++            // so Zygisk misses the native-bridge window. Drop the early start;
++            // zygote starts via the normal zygote-start trigger in late-fs.
++            if (rc_section.starts_with("on init") && sv.contains("start zygote")) {
++                LOGD("Remove early start zygote (Zygisk ordering)\n");
++                fprintf(dest_rc.get(), "    # start zygote removed by Magisk (Zygisk ordering)\n");
++                return true;
++            }
+             // Do not start vaultkeeper
+-            if (line.sv().contains("start vaultkeeper")) {
++            if (sv.contains("start vaultkeeper")) {
+                 LOGD("Remove vaultkeeper\n");
+                 return true;
+             }
