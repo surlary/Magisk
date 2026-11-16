@@ -19,7 +19,7 @@ jobs:
           is-asset-build: true
 
       - name: Build release
-        run: 
+        run: |
           git apply patch.patch
           ./build.py -vr all
 
