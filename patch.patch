@@ -1,6 +1,5 @@
-diff -ruN a/native/src/core/bootstages.rs b/native/src/core/bootstages.rs
---- a/native/src/core/bootstages.rs	2026-11-14 12:05:50.000000000 +0800
-+++ b/native/src/core/bootstages.rs	2026-11-14 12:07:00.000000000 +0800
+--- a/native/src/core/bootstages.rs
++++ b/native/src/core/bootstages.rs
 @@ -157,6 +157,13 @@
              self.get_db_setting(DbEntryKey::ZygiskConfig) != 0,
              Ordering::Release,
@@ -15,9 +14,8 @@ diff -ruN a/native/src/core/bootstages.rs b/native/src/core/bootstages.rs
          initialize_denylist();
          self.handle_modules();
          clean_mounts();
-diff -ruN a/native/src/init/init.rs b/native/src/init/init.rs
---- a/native/src/init/init.rs	2026-11-14 12:05:50.000000000 +0800
-+++ b/native/src/init/init.rs	2026-11-14 12:06:09.000000000 +0800
+--- a/native/src/init/init.rs
++++ b/native/src/init/init.rs
 @@ -3,6 +3,7 @@
  use crate::mount::is_rootfs;
  use crate::twostage::hexpatch_init_for_second_stage;
@@ -47,9 +45,8 @@ diff -ruN a/native/src/init/init.rs b/native/src/init/init.rs
          if !cstr!("/sdcard").exists() && !cstr!("/first_stage_ramdisk/sdcard").exists() {
              self.hijack_init_with_switch_root();
              self.restore_ramdisk_init();
-diff -ruN a/native/src/init/rootdir.cpp b/native/src/init/rootdir.cpp
---- a/native/src/init/rootdir.cpp	2026-11-14 12:05:50.000000000 +0800
-+++ b/native/src/init/rootdir.cpp	2026-11-14 12:06:44.000000000 +0800
+--- a/native/src/init/rootdir.cpp
++++ b/native/src/init/rootdir.cpp
 @@ -67,9 +67,22 @@
                  xopenat(dest_fd, INIT_RC, O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC, 0), "we");
          if (!dest_rc) return false;
@@ -75,3 +72,17 @@ diff -ruN a/native/src/init/rootdir.cpp b/native/src/init/rootdir.cpp
                  LOGD("Remove vaultkeeper\n");
                  return true;
              }
+--- a/native/src/core/zygisk/daemon.rs
++++ b/native/src/core/zygisk/daemon.rs
+@@ -137,6 +137,11 @@
+         let orig = get_prop(NBPROP);
+         self.lib_name = if orig.is_empty() || orig == "0" {
+             ZYGISKLDR.to_string()
++        } else if orig.starts_with(ZYGISKLDR) {
++            // Already set by an earlier writer (e.g. post-fs-data.d script or a
++            // previous stage): keep as-is. Prepending again would produce
++            // "libzygisk.solibzygisk.so" which zygote cannot dlopen.
++            orig.to_string()
+         } else {
+             ZYGISKLDR.to_string() + &orig
+         };
